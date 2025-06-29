@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>To-Do List</title>
+  
+</head>
+<body>
+  <h2>To-Do List</h2>
+  <input type="text" id="taskInput" placeholder="New task" />
+  <button onclick="addTask()">Add</button>
+  <ul id="taskList"></ul>
+
+  <script>
+    const API = '/api/todos';
+
+    async function fetchTasks() {
+      const res = await fetch(API);
+      const tasks = await res.json();
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.className = task.Completed ? 'completed' : '';
+        li.innerHTML = \`
+          <input type="checkbox" \${task.Completed ? 'checked' : ''} onchange="toggleComplete(\${task.Id}, this.checked)">
+          \${task.Title}
+          <button onclick="deleteTask(\${task.Id})">🗑</button>
+        \`;
+        list.appendChild(li);
+      });
+    }
+
+    async function addTask() {
+      const title = document.getElementById('taskInput').value;
+      if (!title) return alert('Enter a task');
+      await fetch(API, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ title })
+      });
+      document.getElementById('taskInput').value = '';
+      fetchTasks();
+    }
+
+    async function toggleComplete(id, completed) {
+      await fetch(\`\${API}/\${id}\`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ title: '', completed })
+      });
+      fetchTasks();
+    }
+
+    async function deleteTask(id) {
+      await fetch(\`\${API}/\${id}\`, { method: 'DELETE' });
+      fetchTasks();
+    }
+
+    fetchTasks();
+  </script>
+</body>
+</html>
