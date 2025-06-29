@@ -1,0 +1,50 @@
+const router = express.Router();
+const { sql } = require('../db');
+
+// Create a new task
+router.post('/', async (req, res) => {
+  const { title } = req.body;
+  try {
+    await sql.query\`INSERT INTO Todos (Title) VALUES (\${title})\`;
+    res.send({ message: 'Task added' });
+  } catch {
+    res.status(500).send('Error creating task');
+  }
+});
+
+// Get all tasks
+router.get('/', async (req, res) => {
+  try {
+    const result = await sql.query\`SELECT * FROM Todos ORDER BY CreatedAt DESC\`;
+    res.send(result.recordset);
+  } catch {
+    res.status(500).send('Error fetching tasks');
+  }
+});
+
+// Update task
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, completed } = req.body;
+  try {
+    await sql.query\`
+      UPDATE Todos SET Title = \${title}, Completed = \${completed} WHERE Id = \${id}
+    \`;
+    res.send({ message: 'Task updated' });
+  } catch {
+    res.status(500).send('Error updating task');
+  }
+});
+
+// Delete task
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await sql.query\`DELETE FROM Todos WHERE Id = \${id}\`;
+    res.send({ message: 'Task deleted' });
+  } catch {
+    res.status(500).send('Error deleting task');
+  }
+});
+
+module.exports = router;
